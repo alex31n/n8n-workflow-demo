@@ -1,0 +1,328 @@
+{
+  "name": "Members workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "",
+        "options": {
+          "loadPreviousSession": "memory",
+          "responseMode": "responseNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        -20
+      ],
+      "id": "dd9061f8-870b-474d-8a16-fd284e19a1df",
+      "name": "When chat message received",
+      "webhookId": "4f1a0e65-88b1-4af0-8e00-5c1f6275f395"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -100,
+        -20
+      ],
+      "id": "0f4720c1-3fc5-411b-852f-7ab5d1e1f4c3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "A dataset storing customer/members/users profiles, including id, name, phone, branch code, branch name, loan_balance and financial data.",
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "member_details",
+          "mode": "list",
+          "cachedResultName": "member_details"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $fromAI('id', `id of a memebr`, 'string') }}"
+            },
+            {
+              "column": "name",
+              "condition": "LIKE",
+              "value": "={{ $fromAI('name', `name of a memebr`, 'string') }}"
+            }
+          ]
+        },
+        "combineConditions": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        200
+      ],
+      "id": "ffb44ff3-b8a1-42d4-9d8b-1b7a2e19ca2a",
+      "name": "Members Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "uUQ4Y2vg7jMyRxe3",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get, add and update payment for a member/user",
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "payments",
+          "mode": "list",
+          "cachedResultName": "payments"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "where": {
+          "values": [
+            {
+              "column": "member_id",
+              "value": "={{ $fromAI('member_id', `id of member that reference from members table`, 'string') }}"
+            }
+          ]
+        },
+        "combineConditions": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        120,
+        200
+      ],
+      "id": "c3cfd1bd-f030-4a53-9c80-5a4d09bed81b",
+      "name": "Payment Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "uUQ4Y2vg7jMyRxe3",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        200
+      ],
+      "id": "20417ca9-aeb8-4109-aca2-f609ca327fcf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Tq2wvBlGr3L7evlM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        -20
+      ],
+      "id": "4b508889-fbe0-4b5b-9467-402773858461",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -380,
+        180
+      ],
+      "id": "ce61cddc-408d-4456-9cf9-731e37ad55c6",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "uUQ4Y2vg7jMyRxe3",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "github public repository for find, search",
+        "url": "https://api.github.com/search/repositories",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "q",
+              "valueProvider": "modelOptional"
+            }
+          ]
+        },
+        "optimizeResponse": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        360,
+        200
+      ],
+      "id": "33fcae1d-34a8-47c2-9630-e412b774b9d6",
+      "name": "Github HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "all",
+        "limit": 50,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hackerNewsTool",
+      "typeVersion": 1,
+      "position": [
+        240,
+        200
+      ],
+      "id": "154a1837-3a88-4fa3-858f-a5229023b211",
+      "name": "Hacker News"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Members Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "When chat message received",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hacker News": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dda758d5-e868-4e99-99d1-3e7cb129ce79",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e84e1acafd7d43e7b1fefda2b986ddde8fc9517adb61ccd6a29ba769c614bf01"
+  },
+  "id": "hontqP8vok0bBrow",
+  "tags": []
+}
